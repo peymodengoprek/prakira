@@ -5,12 +5,10 @@
   --color-secondary: #0F172A;
   --color-accent: #38BDF8;
   --color-theme-white: #FFFFFF;
-  --gradient-theme: ;
 }
 
 @base{
   body {
-    background-color: var(--gradient-theme);
     color: var(--color-secondary);
   }
 }
