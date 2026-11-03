@@ -4,6 +4,7 @@
 <header class="sticky top-0 w-full border-b border-accent/20 bg-[#F8FAFC] z-10">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="flex h-16 items-center justify-between">
+      <!-- Logo -->
       <div class="md:flex md:items-center md:gap-12">
         <a class="flex items-center gap-2 text-[#2563EB]" href="/">
           <span class="sr-only">Home</span>
@@ -26,22 +27,104 @@
         </a>
       </div>
 
-      <div class="flex items-center gap-4">
-        <a href="/">Beranda</a>
+      <!-- Menu desktop -->
+      <div class="hidden items-center gap-6 md:flex">
+        <a href="/" class="text-[#0F172A] transition-colors hover:text-[#2563EB]">Beranda</a>
+        <a href="/#features" class="text-[#0F172A] transition-colors hover:text-[#2563EB]">Fitur</a>
+        <a href="/tentang" class="text-[#0F172A] transition-colors hover:text-[#2563EB]">Tentang</a>
 
-        <a href="/#features">Fitur</a>
-
-        <a href="/tentang">Tentang</a>
-
-        <div class="sm:flex sm:gap-4">
-          <a
-            class="rounded-md bg-[#2563EB] px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#38BDF8] hover:text-[#0F172A]"
-            href="/prakira"
-          >
-            Mulai Prediksi
-          </a>
-        </div>
+        <a
+          class="rounded-md bg-[#2563EB] px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#38BDF8] hover:text-[#0F172A]"
+          href="/prakira"
+        >
+          Mulai Prediksi
+        </a>
       </div>
+
+      <!-- Tombol toggle mobile -->
+      <button
+        id="menu-toggle"
+        type="button"
+        class="inline-flex items-center justify-center rounded-md p-2 text-[#0F172A] transition-colors hover:bg-[#2563EB]/10 md:hidden"
+        aria-controls="mobile-menu"
+        aria-expanded="false"
+        aria-label="Buka menu"
+      >
+        <!-- Ikon hamburger -->
+        <svg
+          id="icon-open"
+          class="h-6 w-6"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          stroke-width="2"
+          aria-hidden="true"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+        <!-- Ikon close -->
+        <svg
+          id="icon-close"
+          class="hidden h-6 w-6"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          stroke-width="2"
+          aria-hidden="true"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 6l12 12M18 6L6 18" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Menu mobile -->
+  <div id="mobile-menu" class="hidden border-t border-accent/20 bg-[#F8FAFC] md:hidden">
+    <div class="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-4 sm:px-6">
+      <a href="/" class="rounded-md px-3 py-2 text-[#0F172A] transition-colors hover:bg-[#2563EB]/10 hover:text-[#2563EB]">
+        Beranda
+      </a>
+      <a href="/#features" class="rounded-md px-3 py-2 text-[#0F172A] transition-colors hover:bg-[#2563EB]/10 hover:text-[#2563EB]">
+        Fitur
+      </a>
+      <a href="/tentang" class="rounded-md px-3 py-2 text-[#0F172A] transition-colors hover:bg-[#2563EB]/10 hover:text-[#2563EB]">
+        Tentang
+      </a>
+      <a
+        class="mt-2 rounded-md bg-[#2563EB] px-5 py-2.5 text-center text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#38BDF8] hover:text-[#0F172A]"
+        href="/prakira"
+      >
+        Mulai Prediksi
+      </a>
     </div>
   </div>
 </header>
+
+<script>
+  const toggle = document.getElementById("menu-toggle");
+  const menu = document.getElementById("mobile-menu");
+  const iconOpen = document.getElementById("icon-open");
+  const iconClose = document.getElementById("icon-close");
+
+  function setMenu(open: boolean) {
+    menu?.classList.toggle("hidden", !open);
+    iconOpen?.classList.toggle("hidden", open);
+    iconClose?.classList.toggle("hidden", !open);
+    toggle?.setAttribute("aria-expanded", String(open));
+    toggle?.setAttribute("aria-label", open ? "Tutup menu" : "Buka menu");
+  }
+
+  toggle?.addEventListener("click", () => {
+    setMenu(toggle.getAttribute("aria-expanded") !== "true");
+  });
+
+  // Tutup menu saat salah satu link diklik
+  menu?.querySelectorAll("a").forEach((link) => {
+    link.addEventListener("click", () => setMenu(false));
+  });
+
+  // Tutup menu otomatis jika layar diperbesar ke ukuran desktop
+  window.matchMedia("(min-width: 768px)").addEventListener("change", (e) => {
+    if (e.matches) setMenu(false);
+  });
+</script>

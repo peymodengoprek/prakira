@@ -1,0 +1,16 @@
+---
+import PredictionCard from './PredictionCard.astro';
+import KpiCard from './KpiCard.astro';
+---
+
+<section aria-label="Ringkasan" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+  <PredictionCard />
+
+  <KpiCard label="Rata-rata tagihan" valueId="kpi-avg" initialValue="Rp 0">
+    Dari <span id="kpi-count">0</span> bulan data
+  </KpiCard>
+
+  <KpiCard label="Total pemakaian" valueId="kpi-kwh" initialValue="0 kWh">
+    Akumulasi seluruh dataset
+  </KpiCard>
+</section>

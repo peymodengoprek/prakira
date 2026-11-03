@@ -1,0 +1,17 @@
+---
+interface Props {
+  label: string;
+  valueId: string;
+  initialValue: string;
+}
+
+const { label, valueId, initialValue } = Astro.props;
+---
+
+<div class="border rounded-lg p-5 shadow-sm">
+  <p class="text-sm opacity-70">{label}</p>
+  <p id={valueId} class="mt-2 text-2xl font-bold tracking-tight">{initialValue}</p>
+  <p class="text-xs opacity-70 mt-2">
+    <slot />
+  </p>
+</div>
