@@ -132,20 +132,56 @@
     initOrUpdateChart();
   }
 
-  function updatePrediction() {
-    if (items.length > 0) {
-      const last = items[items.length - 1];
-      const estTagihan = Math.round(last.tagihan * 1.05);
-      const estKwh = Math.round(last.penggunaan * 1.03);
+  function predictBill(data: Item[]): { kwh: number; tagihan: number } | null {
+    const n = data.length;
+    if (n !== MAX_ITEMS) return null; // Java: if (n != 5)
 
-      if (prediksiTagihanEl) prediksiTagihanEl.textContent = rupiah(estTagihan);
-      if (prediksiKwhEl) prediksiKwhEl.textContent = `${estKwh} kWh`;
-      if (prediksiDeltaEl) prediksiDeltaEl.textContent = '+5% dari bulan lalu';
-    } else {
+    const x = data.map((d) => d.penggunaan); // kWh
+    const y = data.map((d) => d.tagihan);    // Rupiah
+
+    let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+    for (let i = 0; i < n; i++) {
+      sumX += x[i];
+      sumY += y[i];
+      sumXY += x[i] * y[i];
+      sumX2 += x[i] * x[i];
+    }
+
+    // Koefisien regresi: y = a + b * x
+    const den = n * sumX2 - sumX * sumX;
+    const b = den === 0 ? 0 : (n * sumXY - sumX * sumY) / den;
+    const a = (sumY - b * sumX) / n;
+
+    // Rata-rata selisih pemakaian antar bulan
+    let rataSelisih = 0;
+    for (let i = 1; i < n; i++) {
+      rataSelisih += x[i] - x[i - 1];
+    }
+    rataSelisih /= n - 1;
+
+    const prediksiX = Math.max(0, x[n - 1] + rataSelisih); // kWh
+    const prediksiY = Math.max(0, a + b * prediksiX);      // Rupiah
+
+    return { kwh: Math.round(prediksiX), tagihan: Math.round(prediksiY) };
+  }
+
+  function updatePrediction() {
+    const result = predictBill(items);
+
+    if (!result) {
       if (prediksiTagihanEl) prediksiTagihanEl.textContent = 'Rp 0';
       if (prediksiKwhEl) prediksiKwhEl.textContent = '0 kWh';
-      if (prediksiDeltaEl) prediksiDeltaEl.textContent = '-';
+      if (prediksiDeltaEl) prediksiDeltaEl.textContent = `Butuh ${MAX_ITEMS} data`;
+      return;
     }
+
+    const last = items[items.length - 1];
+    const delta = last.tagihan > 0 ? ((result.tagihan - last.tagihan) / last.tagihan) * 100 : 0;
+    const sign = delta >= 0 ? '+' : '';
+
+    if (prediksiTagihanEl) prediksiTagihanEl.textContent = rupiah(result.tagihan);
+    if (prediksiKwhEl) prediksiKwhEl.textContent = `${result.kwh} kWh`;
+    if (prediksiDeltaEl) prediksiDeltaEl.textContent = `${sign}${delta.toFixed(1)}% dari bulan lalu`;
   }
 
   function updateKpis() {
