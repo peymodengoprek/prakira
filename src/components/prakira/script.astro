@@ -8,6 +8,7 @@
     tagihan: number;
   }
 
+  const MAX_ITEMS = 5;
   const items: Item[] = [];
 
   const form = document.getElementById('prakira-form') as HTMLFormElement;
@@ -22,11 +23,19 @@
   const formTitleEl = document.getElementById('form-title');
   const submitBtn = document.getElementById('submit-btn');
   const cancelBtn = document.getElementById('cancel-btn');
+  const formCountEl = document.getElementById('form-count');
+  const formMaxEl = document.getElementById('form-max');
+  const limitInfoEl = document.getElementById('limit-info');
 
   let myChart: any = null;
   let editingIndex: number | null = null;
 
   const rupiah = (n: number) => `Rp ${n.toLocaleString('id-ID')}`;
+
+  if (formMaxEl) formMaxEl.textContent = MAX_ITEMS.toString();
+  if (limitInfoEl) {
+    limitInfoEl.textContent = `Batas ${MAX_ITEMS} data tercapai. Hapus salah satu data untuk menambah yang baru.`;
+  }
 
   function initOrUpdateChart() {
     const canvas = document.getElementById('prakiraChart') as HTMLCanvasElement;
@@ -119,6 +128,7 @@
     if (totalDatasetEl) totalDatasetEl.textContent = items.length.toString();
     updatePrediction();
     updateKpis();
+    updateFormState();
     initOrUpdateChart();
   }
 
@@ -148,16 +158,38 @@
     if (kpiKwhEl) kpiKwhEl.textContent = `${totalKwh.toLocaleString('id-ID')} kWh`;
   }
 
+  function updateFormState() {
+    const isFull = items.length >= MAX_ITEMS && editingIndex === null;
+
+    form
+      .querySelectorAll<HTMLInputElement | HTMLSelectElement>('input, select')
+      .forEach((el) => (el.disabled = isFull));
+
+    if (submitBtn instanceof HTMLButtonElement) {
+      submitBtn.disabled = isFull;
+      submitBtn.classList.toggle('opacity-50', isFull);
+      submitBtn.classList.toggle('cursor-not-allowed', isFull);
+      submitBtn.classList.toggle('cursor-pointer', !isFull);
+    }
+
+    limitInfoEl?.classList.toggle('hidden', !isFull);
+    if (formCountEl) formCountEl.textContent = items.length.toString();
+  }
+
   function setEditMode(index: number | null) {
     editingIndex = index;
     const editing = index !== null;
     if (formTitleEl) formTitleEl.textContent = editing ? 'Ubah data bulanan' : 'Tambah data bulanan';
     if (submitBtn) submitBtn.textContent = editing ? 'Simpan perubahan' : 'Tambah data';
     cancelBtn?.classList.toggle('hidden', !editing);
+    updateFormState();
   }
 
   form?.addEventListener('submit', (e) => {
     e.preventDefault();
+
+    if (editingIndex === null && items.length >= MAX_ITEMS) return;
+
     const bulanInput = document.getElementById('bulan') as HTMLSelectElement;
     const penggunaanInput = document.getElementById('penggunaan') as HTMLInputElement;
     const tagihanInput = document.getElementById('tagihan') as HTMLInputElement;
@@ -203,11 +235,13 @@
       const index = Number(editBtn.dataset.index);
       const item = items[index];
 
+      // Aktifkan form dulu supaya nilai bisa diisi saat data sedang penuh
+      setEditMode(index);
+
       (document.getElementById('bulan') as HTMLSelectElement).value = item.bulan;
       (document.getElementById('penggunaan') as HTMLInputElement).value = item.penggunaan.toString();
       (document.getElementById('tagihan') as HTMLInputElement).value = item.tagihan.toString();
 
-      setEditMode(index);
       form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
   });
