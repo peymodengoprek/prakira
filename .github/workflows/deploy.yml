@@ -1,0 +1,42 @@
+name: Deploy ke VPS
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build
+
+      - name: Pasang cloudflared
+        run: |
+          curl -fsSL -o cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+          sudo dpkg -i cloudflared.deb
+
+      - name: Buka tunnel SSH
+        run: |
+          nohup cloudflared access ssh --hostname ssh.nurjaman.my.id --url 127.0.0.1:2222 > tunnel.log 2>&1 &
+          sleep 5
+          cat tunnel.log
+
+      - name: Siapkan kunci SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+      - name: Kirim ke VPS
+        run: |
+          rsync -avzr --delete \
+            -e "ssh -p 2222 -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no" \
+            dist/ ${{ secrets.VPS_USER }}@127.0.0.1:${{ secrets.VPS_PATH }}
